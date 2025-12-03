@@ -23,13 +23,31 @@ export default function Success() {
   }, [router]);
 
   return (
-    <div>
-      <h1>Payment Success</h1>
-      <p>
-        Your payment has been Success. You will be redirected to the home
-        page in {countdown} seconds.
-      </p>
-      <a href="/"> menu</a>
+    <div className="success-container">
+      <div className="card" style={{ textAlign: 'center', maxWidth: '600px' }}>
+        <div className="success-icon">
+          ✓
+        </div>
+        <h1 style={{ color: '#10b981', marginBottom: '15px' }}>Payment Successful!</h1>
+        <p style={{ color: '#666', fontSize: '1.1rem', lineHeight: '1.8', margin: '20px 0' }}>
+          Your payment has been processed successfully. Thank you for your purchase!
+        </p>
+        <div style={{
+          background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+          padding: '20px',
+          borderRadius: '16px',
+          margin: '25px 0'
+        }}>
+          <p style={{ color: '#333', fontSize: '1rem' }}>
+            Redirecting to home page in{' '}
+            <span className="countdown">{countdown}</span>
+            {' '}seconds
+          </p>
+        </div>
+        <a href="/">
+          🏠 Return to Home
+        </a>
+      </div>
     </div>
   );
 }

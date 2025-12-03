@@ -128,21 +128,107 @@ export default function PaymentPage() {
 
   return (
     <div className="App">
-      <button onClick={() => createRazorpayOrder(100)}>Payment of 100Rs.</button>
-      {responseId && <p>{responseId}</p>}
-      <h1>This is a payment verification form</h1>
-      <form onSubmit={paymentFetch}>
-        <input type="text" name="paymentId" />
-        <button type="submit">Fetch Payment</button>
-        {responseState.length !== 0 && (
-          <ul>
-            <li>Amount: {responseState.amount / 100} Rs.</li>
-            <li>Currency: {responseState.currency}</li>
-            <li>Status: {responseState.status}</li>
-            <li>Method: {responseState.method}</li>
-          </ul>
+      <h1>Razorpay Payment Gateway</h1>
+
+      <div className="card" style={{ marginBottom: '20px' }}>
+        <h2 style={{ color: '#333', fontSize: '1.8rem', marginBottom: '15px', textAlign: 'center' }}>Make a Payment</h2>
+        <p style={{ color: '#666', textAlign: 'center', marginBottom: '25px' }}>
+          Click below to proceed with secure payment
+        </p>
+        <div style={{ textAlign: 'center' }}>
+          <button onClick={() => createRazorpayOrder(100)}>
+            💳 Pay ₹100
+          </button>
+        </div>
+        {responseId && (
+          <div style={{
+            marginTop: '20px',
+            padding: '15px',
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            borderRadius: '12px',
+            color: 'white',
+            textAlign: 'center',
+            animation: 'slideInUp 0.5s ease-out'
+          }}>
+            <strong>Payment ID:</strong> {responseId}
+          </div>
         )}
-      </form>
+      </div>
+
+      <div className="card">
+        <h2 style={{ color: '#333', fontSize: '1.8rem', marginBottom: '15px', textAlign: 'center' }}>
+          Verify Payment
+        </h2>
+        <p style={{ color: '#666', textAlign: 'center', marginBottom: '25px' }}>
+          Enter payment ID to check transaction status
+        </p>
+        <form onSubmit={paymentFetch} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <input
+            type="text"
+            name="paymentId"
+            placeholder="Enter Payment ID"
+            style={{ marginBottom: '15px' }}
+          />
+          <button type="submit">🔍 Fetch Payment Details</button>
+
+          {responseState.length !== 0 && (
+            <div style={{
+              marginTop: '25px',
+              width: '100%',
+              background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+              borderRadius: '16px',
+              padding: '25px',
+              animation: 'slideInUp 0.6s ease-out'
+            }}>
+              <h3 style={{ color: '#333', marginBottom: '15px', fontSize: '1.3rem' }}>
+                Payment Details
+              </h3>
+              <ul style={{ textAlign: 'left' }}>
+                <li style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '15px 0'
+                }}>
+                  <span style={{ fontWeight: '600', color: '#555' }}>Amount:</span>
+                  <span style={{ color: '#333', fontWeight: '700' }}>₹{responseState.amount / 100}</span>
+                </li>
+                <li style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '15px 0'
+                }}>
+                  <span style={{ fontWeight: '600', color: '#555' }}>Currency:</span>
+                  <span style={{ color: '#333' }}>{responseState.currency}</span>
+                </li>
+                <li style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '15px 0'
+                }}>
+                  <span style={{ fontWeight: '600', color: '#555' }}>Status:</span>
+                  <span style={{
+                    color: responseState.status === 'captured' ? '#10b981' : '#f59e0b',
+                    fontWeight: '700',
+                    textTransform: 'uppercase',
+                    fontSize: '0.9rem'
+                  }}>
+                    {responseState.status}
+                  </span>
+                </li>
+                <li style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '15px 0',
+                  borderBottom: 'none'
+                }}>
+                  <span style={{ fontWeight: '600', color: '#555' }}>Method:</span>
+                  <span style={{ color: '#333' }}>{responseState.method}</span>
+                </li>
+              </ul>
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   );
 }
