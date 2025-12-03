@@ -1,0 +1,148 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+
+export default function PaymentPage() {
+  const [responseId, setResponseId] = useState("");
+  const [responseState, setResponseState] = useState([]);
+  const [amount, setAmount] = useState(0);
+  const router = useRouter();
+
+  const loadScript = (src) => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const createRazorpayOrder = async (amt) => {
+    try {
+      setAmount(amt);
+      const response = await axios.post("/api/orders", {
+        amount: amt * 100,
+        currency: "INR",
+      }, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      console.log("Order Response:", response.data.amount);
+      handleRazorpayScreen(response.data.amount);
+
+    } catch (error) {
+      console.error("Error creating Razorpay order:", error);
+    }
+  };
+
+  const handleRazorpayScreen = async (amt) => {
+    const res = await loadScript("https://checkout.razorpay.com/v1/checkout.js");
+
+    if (!res) {
+      alert("Some error at Razorpay screen loading");
+      return;
+    }
+
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      amount: amt,
+      currency: 'INR',
+      name: "Happy Coders",
+      description: "Payment to Happy Coders",
+      image: "https://papayacoders.com/demo.png",
+      handler: async function (response) {
+        setResponseId(response.razorpay_payment_id);
+
+        try {
+          const captureResponse = await axios.post(
+            `/api/capture/${response.razorpay_payment_id}`,
+            { amount: amt },
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+
+          console.log("Capture Response:", captureResponse.data);
+
+          router.push("/success");
+        } catch (error) {
+          console.error("Error capturing payment:", error);
+        }
+      },
+      prefill: {
+        name: "Happu",
+        email: "0000ankit0000jangid@gmail.com"
+      },
+      theme: {
+        color: "#F2C830"
+      },
+      modal: {
+        ondismiss: function () {
+          router.push("/canceled");
+        }
+      }
+    };
+
+    const paymentObject = new window.Razorpay(options);
+    paymentObject.open();
+  };
+
+  const paymentFetch = (e) => {
+    e.preventDefault();
+    const paymentId = e.target.paymentId.value;
+
+    axios.get(`/api/payment/${paymentId}`)
+      .then((response) => {
+        console.log(response.data);
+        setResponseState(response.data);
+      })
+      .catch((error) => {
+        console.log("Error occurs", error);
+      });
+  };
+
+  useEffect(() => {
+    if (!responseId) return;
+
+    let data = JSON.stringify({
+      amount: amount * 100,
+    });
+
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: `/api/capture/${responseId}`,
+      headers: { 'Content-Type': 'application/json' },
+      data: data
+    };
+
+    axios.request(config)
+      .then((response) => {
+        console.log(JSON.stringify(response.data));
+      })
+      .catch((error) => {
+        console.log("Error at", error);
+      });
+  }, [responseId, amount]);
+
+  return (
+    <div className="App">
+      <button onClick={() => createRazorpayOrder(100)}>Payment of 100Rs.</button>
+      {responseId && <p>{responseId}</p>}
+      <h1>This is a payment verification form</h1>
+      <form onSubmit={paymentFetch}>
+        <input type="text" name="paymentId" />
+        <button type="submit">Fetch Payment</button>
+        {responseState.length !== 0 && (
+          <ul>
+            <li>Amount: {responseState.amount / 100} Rs.</li>
+            <li>Currency: {responseState.currency}</li>
+            <li>Status: {responseState.status}</li>
+            <li>Method: {responseState.method}</li>
+          </ul>
+        )}
+      </form>
+    </div>
+  );
+}
